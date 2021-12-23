@@ -1,0 +1,13 @@
+# dependencies
+node_modules
+# package-lock.json
+# yarn.lock
+
+# logs
+npm-debug.log
+
+# public static
+public
+
+# build generate
+dist
