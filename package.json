@@ -1,10 +1,12 @@
 {
   "name": "graphql-easy",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Graphql easy",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "author": "hieunv495",
+  "repository": "https://github.com/hieunv495/graphql-easy",
+  "homepage": "https://github.com/hieunv495/graphql-easy",
   "scripts": {
     "build": "tsc",
     "find-deadcode": "ts-prune"
