@@ -1,4 +1,4 @@
-import { Resolver } from 'graphql-compose';
+import { Resolver, ResolverFilterArgConfigDefinition } from 'graphql-compose';
 import { ObjectTypeComposerWithMongooseResolvers } from 'graphql-compose-mongoose';
 import {
   FilterHelperArgsOpts,
@@ -52,16 +52,19 @@ const ResolverMap: {
     tc.mongooseResolvers.findMany({
       filter: opts?.filter,
       sort: opts?.sort,
+      suffix: 'Base',
     }),
   [CRUDAction.count]: (tc: TC, opts) =>
     tc.mongooseResolvers.count({
       filter: opts?.filter,
+      suffix: 'Base',
     }),
   [CRUDAction.connection]: (tc: TC, opts) =>
     tc.mongooseResolvers.connection({
       findManyOpts: {
         filter: opts?.filter,
         sort: opts?.sort,
+        suffix: 'Connection',
       },
     }),
   [CRUDAction.pagination]: (tc: TC, opts) =>
@@ -69,6 +72,7 @@ const ResolverMap: {
       findManyOpts: {
         filter: opts?.filter,
         sort: opts?.sort,
+        suffix: 'Pagination',
       },
     }),
   [CRUDAction.createOne]: (tc: TC) => tc.mongooseResolvers.createOne(),
@@ -98,6 +102,7 @@ export interface CRUDGraphqlPluginOptions {
   excludes?: CRUDAction[];
   textSearch?: boolean;
   filter?: FilterHelperArgsOpts;
+  filterArgs?: ResolverFilterArgConfigDefinition<any, any, any>[];
   sort?: SortHelperArgsOpts;
 }
 
@@ -159,17 +164,25 @@ export class CRUDGraphqlPlugin implements GraphqlPlugin {
         continue;
       }
       if (
-        this.options?.textSearch &&
         [
+          CRUDAction.findOne,
           CRUDAction.findMany,
           CRUDAction.count,
           CRUDAction.connection,
           CRUDAction.pagination,
         ].includes(action)
       ) {
-        resolver = resolver.addFilterArg(
-          CRUDGraphqlPlugin.getSearchFilterArg('search')
-        );
+        if (this.options?.textSearch) {
+          resolver = resolver.addFilterArg(
+            CRUDGraphqlPlugin.getSearchFilterArg('search')
+          );
+        }
+
+        if (this.options?.filterArgs) {
+          for (const arg of this.options.filterArgs) {
+            resolver = resolver.addFilterArg(arg);
+          }
+        }
       }
 
       newQueries[
@@ -216,5 +229,4 @@ export class CRUDGraphqlPlugin implements GraphqlPlugin {
 
     return newSubscriptions;
   }
-  r;
 }
