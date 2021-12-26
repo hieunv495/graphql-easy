@@ -1,4 +1,8 @@
-import { Resolver, ResolverFilterArgConfigDefinition } from 'graphql-compose';
+import {
+  Resolver,
+  ResolverFilterArgConfigDefinition,
+  ResolverSortArgConfig,
+} from 'graphql-compose';
 import { ObjectTypeComposerWithMongooseResolvers } from 'graphql-compose-mongoose';
 import {
   FilterHelperArgsOpts,
@@ -104,6 +108,7 @@ export interface CRUDGraphqlPluginOptions {
   filter?: FilterHelperArgsOpts;
   filterArgs?: ResolverFilterArgConfigDefinition<any, any, any>[];
   sort?: SortHelperArgsOpts;
+  sortArgs?: ResolverSortArgConfig<any, any, any>[];
 }
 
 export class CRUDGraphqlPlugin implements GraphqlPlugin {
@@ -181,6 +186,20 @@ export class CRUDGraphqlPlugin implements GraphqlPlugin {
         if (this.options?.filterArgs) {
           for (const arg of this.options.filterArgs) {
             resolver = resolver.addFilterArg(arg);
+          }
+        }
+      }
+
+      if (
+        [
+          CRUDAction.findMany,
+          CRUDAction.connection,
+          CRUDAction.pagination,
+        ].includes(action)
+      ) {
+        if (this.options?.sortArgs) {
+          for (const arg of this.options.sortArgs) {
+            resolver.addSortArg(arg);
           }
         }
       }
