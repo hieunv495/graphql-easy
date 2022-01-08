@@ -51,7 +51,12 @@ const ResolverMap: {
 } = {
   [CRUDAction.findById]: (tc: TC) => tc.mongooseResolvers.findById(),
   [CRUDAction.findByIds]: (tc: TC) => tc.mongooseResolvers.findByIds(),
-  [CRUDAction.findOne]: (tc: TC) => tc.mongooseResolvers.findOne(),
+  [CRUDAction.findOne]: (tc: TC, opts) =>
+    tc.mongooseResolvers.findOne({
+      filter: opts?.filter,
+      sort: opts?.sort,
+      suffix: 'Base',
+    }),
   [CRUDAction.findMany]: (tc: TC, opts) =>
     tc.mongooseResolvers.findMany({
       filter: opts?.filter,
