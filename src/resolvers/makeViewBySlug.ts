@@ -1,3 +1,4 @@
+import { schemaComposer } from 'graphql-compose';
 import { Model } from 'mongoose';
 
 export interface MakeViewBySlugParams {
@@ -5,24 +6,28 @@ export interface MakeViewBySlugParams {
   model: Model<any>;
 }
 
-const makeViewBySlug = ({ resource, model }: MakeViewBySlugParams) => ({
-  type: `${resource}!`,
-  args: {
-    slug: 'String!',
-  },
-  resolve: async (
-    _root: any,
+const makeViewBySlug = ({ resource, model }: MakeViewBySlugParams) =>
+  schemaComposer.createResolver<
+    any,
+    {
+      slug: string;
+    }
+  >({
+    name: `${resource}ViewBySlug`,
+    type: `${resource}!`,
     args: {
-      slug: any;
-    }
-  ) => {
-    const { slug } = args;
-    const item = await model.findOneAndUpdate({ slug }, { $inc: { views: 1 } });
-    if (!item) {
-      throw new Error('Not found');
-    }
-    return item;
-  },
-});
+      slug: 'String!',
+    },
+    resolve: async ({ args: { slug } }) => {
+      const item = await model.findOneAndUpdate(
+        { slug },
+        { $inc: { views: 1 } }
+      );
+      if (!item) {
+        throw new Error('Not found');
+      }
+      return item;
+    },
+  });
 
 export default makeViewBySlug;

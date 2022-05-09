@@ -1,4 +1,8 @@
-import { GraphqlModuleContext, ModuleResolvers } from '../GraphqlModule';
+import {
+  GraphqlModuleContext,
+  ModuleResolvers,
+  ModuleSubscriptions,
+} from '../GraphqlModule';
 import makeSlugMutations from '../resolvers/makeSlugMutations';
 import makeSlugQueries from '../resolvers/makeSlugQueries';
 import { GraphqlPlugin } from './@GraphqlPlugin';
@@ -27,8 +31,8 @@ export class SlugGraphqlPlugin implements GraphqlPlugin {
   }
   resolveSubscriptions(
     _context: GraphqlModuleContext,
-    subscriptions: ModuleResolvers
-  ): ModuleResolvers {
+    subscriptions: ModuleSubscriptions
+  ): ModuleSubscriptions {
     return subscriptions;
   }
 }

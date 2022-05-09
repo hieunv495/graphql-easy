@@ -1,5 +1,9 @@
 import { withFilter } from 'graphql-subscriptions';
-import { GraphqlModuleContext, ModuleResolvers } from '../GraphqlModule';
+import {
+  GraphqlModuleContext,
+  ModuleResolvers,
+  ModuleSubscriptions,
+} from '../GraphqlModule';
 import { GraphqlPlugin } from './@GraphqlPlugin';
 import { CRUDAction, CRUDGraphqlPlugin } from './CRUDGraphqlPlugin';
 
@@ -143,9 +147,9 @@ export default class SubscriptionGraphqlPlugin implements GraphqlPlugin {
 
   resolveSubscriptions(
     context: GraphqlModuleContext,
-    subscriptions: ModuleResolvers
-  ): ModuleResolvers {
-    const newSubscriptions: ModuleResolvers = { ...subscriptions };
+    subscriptions: ModuleSubscriptions
+  ): ModuleSubscriptions {
+    const newSubscriptions: ModuleSubscriptions = { ...subscriptions };
 
     for (const subscriptionName of Object.keys(this.subscriptionItems)) {
       const { event, filter } = this.subscriptionItems[subscriptionName];
