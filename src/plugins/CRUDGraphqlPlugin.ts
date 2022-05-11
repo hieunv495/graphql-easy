@@ -8,7 +8,11 @@ import {
   FilterHelperArgsOpts,
   SortHelperArgsOpts,
 } from 'graphql-compose-mongoose/lib/resolvers/helpers';
-import { GraphqlModuleContext, ModuleResolvers } from '../GraphqlModule';
+import {
+  GraphqlModuleContext,
+  ModuleResolvers,
+  ModuleSubscriptions,
+} from '../GraphqlModule';
 import { GraphqlPlugin } from './@GraphqlPlugin';
 
 type TC = ObjectTypeComposerWithMongooseResolvers<any, any>;
@@ -89,21 +93,6 @@ const ResolverMap: {
   [CRUDAction.updateById]: (tc: TC) => tc.mongooseResolvers.updateById(),
   [CRUDAction.removeById]: (tc: TC) => tc.mongooseResolvers.removeById(),
   [CRUDAction.removeMany]: (tc: TC) => tc.mongooseResolvers.removeMany(),
-};
-
-const SuffixMap = {
-  [CRUDAction.findById]: 'ById',
-  [CRUDAction.findByIds]: 'ByIds',
-  [CRUDAction.findOne]: 'One',
-  [CRUDAction.findMany]: 'Many',
-  [CRUDAction.count]: 'Count',
-  [CRUDAction.connection]: 'Connection',
-  [CRUDAction.pagination]: 'Pagination',
-  [CRUDAction.createOne]: 'CreateOne',
-  [CRUDAction.createMany]: 'CreateMany',
-  [CRUDAction.updateById]: 'UpdateById',
-  [CRUDAction.removeById]: 'RemoveById',
-  [CRUDAction.removeMany]: 'RemoveMany',
 };
 
 export interface CRUDGraphqlPluginOptions {
@@ -247,8 +236,8 @@ export class CRUDGraphqlPlugin implements GraphqlPlugin {
   }
   resolveSubscriptions(
     context: GraphqlModuleContext,
-    subscriptions: ModuleResolvers
-  ): ModuleResolvers {
+    subscriptions: ModuleSubscriptions
+  ): ModuleSubscriptions {
     const newSubscriptions = { ...subscriptions };
 
     return newSubscriptions;

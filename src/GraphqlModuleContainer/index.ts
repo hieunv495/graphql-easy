@@ -1,4 +1,8 @@
-import { GraphqlModule, ModuleResolvers } from '../GraphqlModule';
+import {
+  GraphqlModule,
+  ModuleResolvers,
+  ModuleSubscriptions,
+} from '../GraphqlModule';
 export default class GraphqlModuleContainer {
   modules: GraphqlModule[];
 
@@ -25,7 +29,7 @@ export default class GraphqlModuleContainer {
     return mutations;
   }
 
-  public getSubscriptions(): ModuleResolvers {
+  public getSubscriptions(): ModuleSubscriptions {
     const subscriptions: ModuleResolvers = {};
 
     for (const module of this.modules) {

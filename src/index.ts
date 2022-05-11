@@ -1,3 +1,7 @@
+import getCRUDCheckDefinitions from './default/getCRUDCheckDefinitions';
+import getCRUDCheckDefinitionsWithDynamicDomain from './default/getCRUDCheckDefinitionsWithDynamicDomain';
+import getCRUDCheckDefinitionsWithStaticDomain from './default/getCRUDCheckDefinitionsWithStaticDomain';
+import defaultCheckDefinition from './default/getDefaultCheckDefinition';
 import { GraphqlModule } from './GraphqlModule';
 import GraphqlModuleContainer from './GraphqlModuleContainer';
 import { GraphqlPlugin } from './plugins/@GraphqlPlugin';
@@ -33,6 +37,7 @@ import makeUpdateByIdWithSlug, {
 import makeViewBySlug, {
   MakeViewBySlugParams,
 } from './resolvers/makeViewBySlug';
+import splitResolverName from './utils/splitResolverName';
 
 export {
   GraphqlModule,
@@ -62,4 +67,9 @@ export {
   MakeMoveToPositionParams,
   makeSlugQueries,
   makeSlugMutations,
+  getCRUDCheckDefinitions,
+  getCRUDCheckDefinitionsWithStaticDomain,
+  getCRUDCheckDefinitionsWithDynamicDomain,
+  defaultCheckDefinition,
+  splitResolverName,
 };

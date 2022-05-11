@@ -1,5 +1,9 @@
 # Changelogs
 
+# 1.0.0 (2022-05-11)
+
+- Add casbin with domain ([7bfe8ea](https://github.com/hieunv495/graphql-easy/commit/7bfe8ea))
+
 # 0.2.1 (2021-01-08)
 
 - Fix CRUD Plugin findOne not config filter and sort ([#9d6f4a8](https://github.com/hieunv495/graphql-easy/commit/9d6f4a8))

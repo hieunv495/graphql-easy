@@ -1,6 +1,29 @@
 import { Enforcer } from 'casbin';
-import { GraphqlModuleContext, ModuleResolvers } from '../GraphqlModule';
+import { Resolver, ResolverResolveParams } from 'graphql-compose';
+import {
+  GraphqlModuleContext,
+  ModuleResolvers,
+  ModuleSubscriptions,
+} from '../GraphqlModule';
 import { GraphqlPlugin } from './@GraphqlPlugin';
+
+export interface CheckDefinition {
+  beforeResolve?: (
+    role: string,
+    rp: ResolverResolveParams<any, any>
+  ) => string[][] | null | undefined;
+  beforeRecordMutate?: (
+    role: string,
+    doc: any,
+    rp: ResolverResolveParams<any, any>
+  ) => string[][] | null | undefined;
+
+  afterResolve?: (
+    role: string,
+    result: any,
+    rp: ResolverResolveParams<any, any>
+  ) => string[][] | null | undefined;
+}
 
 export interface WrapResolverMapWithCasbinOptions<User> {
   enforcer: {
@@ -10,9 +33,10 @@ export interface WrapResolverMapWithCasbinOptions<User> {
   getUser: (context: any) => Promise<User | null | undefined>;
   getUserRole: (user: User | null | undefined) => Promise<string>;
 
-  extraActionMap?: {
-    [key: string]: string;
-  };
+  checkDefinitions: { [key: string]: CheckDefinition };
+
+  defaultCheckDefinition?: (resolverName: string) => CheckDefinition;
+
   ignore?: string[];
 }
 
@@ -22,17 +46,27 @@ export default class CasbinGraphqlPlugin<User> implements GraphqlPlugin {
     this.options = options;
   }
 
+  private async enforce(rvalsList: string[][] | null | undefined) {
+    if (rvalsList)
+      for (const rvals of rvalsList) {
+        if (
+          rvals &&
+          !(await this.options.enforcer.current?.enforce(...rvals))
+        ) {
+          throw new Error(`Permission denied for "${rvals.join(',')}"`);
+        }
+      }
+  }
+
   private wrapResolverWithCasbin(
-    resolver: any,
-    resource: string,
-    action: string
+    resolver: Resolver,
+    checkDefinition?: CheckDefinition
   ) {
-    const defaultResolve = resolver.resolve;
-    resolver.resolve = async (...resolveParams) => {
-      const context =
-        resolveParams.length === 1
-          ? resolveParams[0].context
-          : resolveParams[2];
+    const { beforeResolve, beforeRecordMutate, afterResolve } =
+      checkDefinition || {};
+
+    resolver = resolver.wrapResolve((next) => async (rp) => {
+      const context = rp.context;
 
       const user = await this.options.getUser(context);
 
@@ -44,26 +78,47 @@ export default class CasbinGraphqlPlugin<User> implements GraphqlPlugin {
         throw new Error('Enforcer is not ready');
       }
 
-      if (
-        !(await this.options.enforcer.current.enforce(role, resource, action))
-      ) {
-        throw new Error(`Permission denied for '${resource}' - '${action}' `);
-      }
-
       req.user = user;
 
-      return defaultResolve(...resolveParams);
-    };
+      if (beforeResolve) {
+        const rvalsList: string[][] | undefined | null = beforeResolve(
+          role,
+          rp
+        );
+        await this.enforce(rvalsList);
+      }
+
+      if (beforeRecordMutate) {
+        rp.beforeRecordMutate = async (doc, rp) => {
+          const rvalsList: string[][] | undefined | null = beforeRecordMutate(
+            role,
+            doc,
+            rp
+          );
+          await this.enforce(rvalsList);
+          return doc;
+        };
+      }
+
+      const result = await next(rp);
+
+      if (afterResolve) {
+        const rvalsList: string[][] | undefined | null = afterResolve(
+          role,
+          result,
+          rp
+        );
+        await this.enforce(rvalsList);
+      }
+
+      return result;
+    });
 
     return resolver;
   }
 
   private getResolverAction(resolverName: string, resource: string): string {
     const bits = resolverName.split('.');
-
-    // console.log(`ResolverName: ${resolverName}`);
-    // console.log(`Prefix: ${prefix}`);
-    // console.log(resolverName.startsWith(prefix));
 
     if (bits[0] === resource) {
       const action = bits[1];
@@ -76,31 +131,22 @@ export default class CasbinGraphqlPlugin<User> implements GraphqlPlugin {
     }
   }
 
-  private wrapResolverMapWithCasbin<T extends { [key: string]: any }>(
+  private wrapResolverMapWithCasbin(
     resource: string,
-    resolverMap: T,
+    resolverMap: ModuleResolvers,
     options?: WrapResolverMapWithCasbinOptions<User>
-  ): T {
-    const data: T = { ...resolverMap };
+  ): ModuleResolvers {
+    const data: ModuleResolvers = { ...resolverMap };
 
     for (const resolverName in data) {
       if (options?.ignore && options.ignore.includes(resolverName)) {
         continue;
       }
 
-      if (options?.extraActionMap && resolverName in options.extraActionMap) {
-        data[resolverName] = this.wrapResolverWithCasbin(
-          data[resolverName],
-          resource,
-          options.extraActionMap[resolverName]
-        );
-        continue;
-      }
-
       data[resolverName] = this.wrapResolverWithCasbin(
         data[resolverName],
-        resource,
-        this.getResolverAction(resolverName, resource)
+        options?.checkDefinitions[resolverName] ||
+          options?.defaultCheckDefinition?.(resolverName)
       );
     }
 
@@ -129,13 +175,8 @@ export default class CasbinGraphqlPlugin<User> implements GraphqlPlugin {
   }
   resolveSubscriptions(
     context: GraphqlModuleContext,
-    subscriptions: ModuleResolvers
-  ): ModuleResolvers {
+    subscriptions: ModuleSubscriptions
+  ): ModuleSubscriptions {
     return subscriptions;
-    // return wrapResolverMapWithCasbin(
-    //   context.resource,
-    //   subscriptions,
-    //   this.options
-    // );
   }
 }

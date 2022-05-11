@@ -1,4 +1,8 @@
-import { GraphqlModuleContext, ModuleResolvers } from '../GraphqlModule';
+import {
+  GraphqlModuleContext,
+  ModuleResolvers,
+  ModuleSubscriptions,
+} from '../GraphqlModule';
 
 export interface GraphqlPlugin {
   resolveQueries(
@@ -13,6 +17,6 @@ export interface GraphqlPlugin {
 
   resolveSubscriptions(
     context: GraphqlModuleContext,
-    subscriptions: ModuleResolvers
-  ): ModuleResolvers;
+    subscriptions: ModuleSubscriptions
+  ): ModuleSubscriptions;
 }

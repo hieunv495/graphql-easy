@@ -1,9 +1,16 @@
-import { ObjectTypeComposerFieldConfigDefinition } from 'graphql-compose';
+import {
+  ObjectTypeComposerFieldConfigDefinition,
+  Resolver,
+} from 'graphql-compose';
 import { ObjectTypeComposerWithMongooseResolvers } from 'graphql-compose-mongoose';
 import { Model } from 'mongoose';
 import { GraphqlPlugin } from '../plugins/@GraphqlPlugin';
 
 export type ModuleResolvers = {
+  [key: string]: Resolver;
+};
+
+export type ModuleSubscriptions = {
   [key: string]: ObjectTypeComposerFieldConfigDefinition<any, any>;
 };
 
@@ -13,7 +20,7 @@ export interface GraphqlModuleContext {
   tc: ObjectTypeComposerWithMongooseResolvers<any, any>;
   queries: ModuleResolvers;
   mutations: ModuleResolvers;
-  subscriptions: ModuleResolvers;
+  subscriptions: ModuleSubscriptions;
 }
 
 export class GraphqlModule {
@@ -22,7 +29,7 @@ export class GraphqlModule {
   tc: ObjectTypeComposerWithMongooseResolvers<any, any>;
   queries: ModuleResolvers;
   mutations: ModuleResolvers;
-  subscriptions: ModuleResolvers;
+  subscriptions: ModuleSubscriptions;
 
   plugins: GraphqlPlugin[];
 
@@ -40,7 +47,7 @@ export class GraphqlModule {
     tc: ObjectTypeComposerWithMongooseResolvers<any, any>;
     queries?: ModuleResolvers;
     mutations?: ModuleResolvers;
-    subscriptions?: ModuleResolvers;
+    subscriptions?: ModuleSubscriptions;
     plugins?: GraphqlPlugin[];
   }) {
     this.resource = resource;

@@ -1,3 +1,4 @@
+import { schemaComposer } from 'graphql-compose';
 import { Model } from 'mongoose';
 
 export interface MakeFindBySlugParams {
@@ -5,24 +6,20 @@ export interface MakeFindBySlugParams {
   model: Model<any>;
 }
 
-const makeFindBySlug = ({ resource, model }: MakeFindBySlugParams) => ({
-  type: `${resource}!`,
-  args: {
-    slug: 'String!',
-  },
-  resolve: async (
-    _root: any,
+const makeFindBySlug = ({ resource, model }: MakeFindBySlugParams) =>
+  schemaComposer.createResolver<any, { slug: string }>({
+    name: `${resource}FindBySlug`,
+    type: `${resource}!`,
     args: {
-      slug: any;
-    }
-  ) => {
-    const { slug } = args;
-    const item = await model.findOne({ slug });
-    if (!item) {
-      throw new Error('Not found');
-    }
-    return item;
-  },
-});
+      slug: 'String!',
+    },
+    resolve: async ({ args: { slug } }) => {
+      const item = await model.findOne({ slug });
+      if (!item) {
+        throw new Error('Not found');
+      }
+      return item;
+    },
+  });
 
 export default makeFindBySlug;
